@@ -22,13 +22,13 @@ $$
 J(\pi)=\sum^{T}_{t=0}\mathbb{E}_{(s_t,a_t)\sim\rho_\pi}[r(s_t,a_t)+\alpha\mathcal{H}(\pi(\cdot|s_t))]
 $$
 
-其中熵就是对数化的动作概率加负号, 在代码里面表现为变量`entropy`
+其中熵就是对数化的动作概率加负号, 在代码里面表现为变量 `entropy`
 
 $$
 \mathcal{H}(\pi(\cdot|s_t)) = -\log(\pi(a|s))
 $$
 
-并且V函数也加入熵, 如果不考虑负号应该是加上$\alpha\mathcal{H}(\pi(\cdot|s_t))$, 改写为$V^\pi_{soft}(s)$
+并且 V 函数也加入熵, 如果不考虑负号应该是加上 $\alpha\mathcal{H}(\pi(\cdot|s_t))$, 改写为 $V^\pi_{soft}(s)$
 $$
 V^\pi_{soft}(s^\prime)=\mathbb{E}_{(s^\prime,a^\prime)\sim\rho_\pi}[Q_{soft}(s^\prime,a^\prime)-\alpha\log(\pi(a^\prime|s^\prime))]
 $$
