@@ -14,7 +14,7 @@
 
 代码中仍然可以定义 PPO 或者其他算法，在训练时，建立多个智能体，每个智能体单独用一个 transition 表即可。
 
-## 1.1. 中心化训练去中心化执行(CTDE)
+# 2. 中心化训练去中心化执行(CTDE)
 
 这是指在训练的时候使用一些单个智能体看不到的全局信息而以达到更好的训练效果，而在执行时不使用这些信息，每个智能体完全根据自己的策略直接动作以达到去中心化执行的效果。
 
@@ -22,53 +22,58 @@
 
 CTDE 可以类比成一个足球队的训练和比赛过程：在训练时，11 个球员可以直接获得教练的指导从而完成球队的整体配合，而教练本身掌握着比赛全局信息，教练的指导也是从整支队、整场比赛的角度进行的；而训练好的 11 个球员在上场比赛时，则根据场上的实时情况直接做出决策，不再有教练的指导。
 
-# 2. 多智能体和类似任务的状态设计
+[Is MAPPO All You Need in Multi-Agent Reinforcement Learning?](https://d2jud02ci9yv69.cloudfront.net/2024-05-07-is-mappo-all-you-need-128/blog/is-mappo-all-you-need/) 一文表明，CTDE 的 MAPPO 方案可能不如 IPPO 及其改进方法。详细介绍参考 [[Reinforcement Learning/12_Muti-agent RL#6. MAPPO\| MAPPO一节]]。
+
+# 3. 多智能体任务的状态设计
 
 可以发现很多类似任务设计中，如果是比较复杂的状态，比如是数组的组合，复合数组等，都是“暴力”拼接、拉直的，类似 [[Machine Learning/MLP-ABC/06_其他机器学习技术#卷积神经网络\|CNN]] 中把最后提取的特征展平到 [[Machine Learning/MLP-ABC/02_神经网络\|MLP]] 一样，对人类来说这样做很难学到任何东西，但是对神经网络来说是有效的。
 
-# 3. 多智能体编程技巧
+在 CDTE 框架中，critic 需要接收全局状态输入，如果有 n 个智能体，每个智能体的 state 长度是 m，那么全局状态维度是 n\*m.
 
-这部分不是固定的，比如算法是 [[Reinforcement Learning/5_PPO\|PPO]]，只需要建立一个列表，装入若干 [[Reinforcement Learning/5_PPO\|PPO]] 算法即可，可以采取中心化训练，去中心化执行的方法：评论员网络接收全部智能体状态（或和动作，全部拼接、展平），每个智能体，仅采用它观察到的状态采取动作。
+# 4. 环境特征
 
-因此，进一步应该想到，每个智能体的状态应该单独给出，整理在一个表里输出作为总状态。并且在训练智能体的时候，善用 `enumerate()` 和 `zip()`，同时输出序号和内容，便于和不同智能体数据对应。
-
-要注意的是，由于输出是包含多组智能体输出的，所以比单智能体操作不一样：在经验池采样一个批量只会，需要先转置，再把倒数第二维改成 tensor，相当于变成多个单智能体的状态，装在一个大列表中。
-
-下面是一个例子
+类似 Gymnasium 的 PettingZoo 环境给出的 state 一般是一个字典，键是智能体名称，值是对应智能体的状态。输入的 actions 一般也是一个字典，键是智能体名称，值是动作。
 
 ```python
-# 环境给出的状态形式，每行代表某一时刻三个智能体的观测，这里假设是随机抽了三个时点数据作为一个批量，这三个时点对应三行
+obv, info = env.reset()
 
-x = [[np.array([1, 2]), np.array([3, 4]), np.array([3, 5])],
-     [np.array([4, 2]), np.array([0, 7]), np.array([5, 5])],
-     [np.array([1, 5]), np.array([4, 7]), np.array([6, 2])],]
+obv = {'agent_1': array([...]),
+	   'agent_2': array([...]),
+	   ...}
+	   
+action = {"agent_1": action_1,
+		  "agent_2": action_2,
+		  ...}
+		  
+next_state, reward, done, truncated, info = env.step(action)
 ```
+# 5. IDQN
 
-转置为
+给每个智能体单独配置一个 DQN 即可，经验池共用或单独配置需要视情况而定，取决于 agent 的 state 和 action 空间是否相同，任务是否相同等因素。
 
-```python
-[[array([1, 2]), array([4, 2]), array([1, 5])], 
- [array([3, 4]), array([0, 7]), array([4, 7])], 
- [array([3, 5]), array([5, 5]), array([6, 2])]]
-```
+# 6. MADDPG
 
-再修改为
 
-```python
-[tensor([[1., 2.], [4., 2.], [1., 5.]]), 
- tensor([[3., 4.], [0., 7.], [4., 7.]]), 
- tensor([[3., 5.], [5., 5.], [6., 2.]])]
-```
+# 7. MAPPO
 
-要实现该操作，可以参考以下函数写法
+原生 MAPPO 中，由于智能体是同质的，因此只分配了两个网络，一个演员一个评论员，所有智能体共用一套参数。如果不同质，那么演员网络就很难用一个网络解决，每个 agent 单独配置一个 actor 网络；critic 仍然可以只用一个，接收全局状态输入，这也是 CTDE 方案。
 
-```python
-def stack_array(x):
-	rearranged = [[sub_x[i] for sub_x in x]
-				  for i in range(len(x[0]))]
-	return [
-		torch.FloatTensor(np.vstack(aa)).to(device)
-		for aa in rearranged
-	]
-```
+网络方面，原生 MAPPO 采用的是 RNN 而不是普通的 RNN。
 
+[Is MAPPO All You Need in Multi-Agent Reinforcement Learning?](https://d2jud02ci9yv69.cloudfront.net/2024-05-07-is-mappo-all-you-need-128/blog/is-mappo-all-you-need/) 一文中介绍了一些基于 IPPO 的改进方法，并且在星际争霸 II 中表现优于 MAPPO，下面介绍这几种方法。
+
+## 7.1. IPPO
+
+每个智能体单独配置一个 PPO 算法，每个 actor 和 critic 都只接收自己本地的信息，需要注意的是，后面的两个方法每个 agent 都单独配置了 critic，所以都属于 IPPO 的改进，也称 MAIPPO。
+
+## 7.2. MAPPO-FP
+
+对于值函数的输入，MAPPO-FP 将当前智能体自己的信息 own_feats（比如 `agent ID` 、 `position` `last action` 等）与全局信息 $s$ 连接起来。
+
+$$V_i(s)=V^{\boldsymbol{\phi}}(\mathrm{concat}(s,f^i))$$
+
+## 7.3. Noisy-MAPPO
+
+也是改值函数输入，$s$ 是全局状态，$x^i$ 是高斯分布的噪音向量，直接 concat 到 state 后面，避免过拟合。实验表明 Noisy-MAPPO 效果最好。
+
+$$V_i(s)=V^{\boldsymbol{\phi}}(\mathrm{concat}(s,x^i)),\quad x^i\sim\mathcal{N}(0,\sigma^2I)$$
