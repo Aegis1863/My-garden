@@ -7,7 +7,7 @@
 #机器学习/强化学习/同策略 #机器学习/强化学习/策略网络 #机器学习/强化学习/离散动作 
 #机器学习/强化学习/连续动作
 
-梯度策略也要构建一个神经网络，但是该网络输出的是动作而不是价值，输入的还是state，输出均值和方差去建立一个正态分布，然后抽取动作，如[[Reinforcement Learning/5_PPO\|5_PPO]]算法，或者用softmax输出各个动作的概率，建立一个分类分布，抽取动作例如REINFORCE算法；或者输出一个值用tanh映射到-1~1的区间，再缩放到动作空间，例如[[Reinforcement Learning/6_DDPG\|6_DDPG]]和[[Reinforcement Learning/7_TD3\|7_TD3]]算法。在[[Reinforcement Learning/8_Soft Actor Critic (SAC)\|SAC算法]]中，策略网络输出均值和方差建立一个分布，抽取动作，最后把动作映射到tanh上，经放缩后输出，同时输出一个对数动作概率。
+梯度策略也要构建一个神经网络，但是该网络输出的是动作而不是价值，输入的还是 state，输出均值和方差去建立一个正态分布，然后抽取动作，如 [[Reinforcement Learning/5_PPO\|5_PPO]] 算法，或者用 softmax 输出各个动作的概率，建立一个分类分布，抽取动作例如 REINFORCE 算法；或者输出一个值用 tanh 映射到-1~1的区间，再缩放到动作空间，例如 [[Reinforcement Learning/6_DDPG\|6_DDPG]] 和 [[Reinforcement Learning/7_TD3\|7_TD3]] 算法。在 [[Reinforcement Learning/8_Soft Actor Critic (SAC)\|SAC算法]]中，策略网络输出均值和方差建立一个分布，抽取动作，最后把动作映射到 tanh 上，经放缩后输出，同时输出一个对数动作概率。
 
 策略网络和Q网络的区别，参考[[Reinforcement Learning/3_Similar Concepts\|3_Similar Concepts]]。
 
@@ -20,7 +20,11 @@
 $$
 \bar{R}_{\theta}=\sum_{\tau} R(\tau) p_{\theta}(\tau)
 $$
+其中
 
+$$
+p_\theta(\tau) = p(s_1)p_\theta(a_1|s_1)p(s_2|s_1, a_1)p_\theta(a_2|s_2)p(s_3|s_2, a_2)...
+$$
 梯度策略的更新就是直接对奖励梯度上升
 { #051b94}
 
