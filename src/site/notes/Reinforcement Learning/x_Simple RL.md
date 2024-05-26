@@ -21,7 +21,7 @@ $$
 
  **Q 学习**或者**策略梯度**在这里不详细说，只需要知道它们可以给出一个损失函数去训练模型。损失函数的目标是根据奖励和价值估计去构造的，但是这个目标不是一个 ground truth，所以不能说强化学习是有监督学习；同时，又因为用到了梯度下降去调参，所以也不能说是无监督的，强化学习是平行于有监督和无监督的一个大类。
 
-<img src="C:\Users\Bowen\AppData\Roaming\Typora\typora-user-images\image-20240526122632351.png" alt="image-20240526122632351" style="zoom:50%;" />
+<img src="https://s2.loli.net/2024/05/26/hrxcZTpg5lXBQeW.png" alt="image-20240526122632351" style="zoom:50%;" />
 
 为了直观理解强化学习，这里说一个例子，看看强化学习怎么解决大家比较熟悉的 CNN 图片分类任务：
 
@@ -46,8 +46,7 @@ $$
 # 2. 单个交通信号灯的强化学习环境
 
 
-
-<img src="C:\Users\Bowen\Desktop\资源中心\Bowen's PKM\attachments\Pasted image 20240521145322.png" width="700"/>
+![Pasted image 20240521145322.png|850](https://s2.loli.net/2024/05/26/WAtQr3UF18y2PYZ.png)
 
 该问题中，Environment 可以是一个 Python 定义的类，输入 action 并输出 state 和 reward。其中，action 表示动作选择；state 表示各个车道的信息，比如该车道的车辆密度等，是一个向量；reward 有多种设计方法，一种可行的设计是其值等于负的各个车道上车辆数的总和。在右侧的强化学习智能体框架内，state 表征（State representation）为表征状态，技术上体现为通过一个编码器，表征状态与 reward 一起输入**贝尔曼方程**（Bellman equation），通过**时序差分法**（Temporal difference update) 得到更新目标去训练机器学习模型。贝尔曼方程是动态规划中的一个重要工具，也是 Q 学习的内容，在后面会介绍，也可以用策略梯度方法。
 
